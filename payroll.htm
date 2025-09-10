@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Payroll Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <i class="fas fa-money-check-alt text-2xl"></i>
+                    <h1 class="text-2xl font-bold">Payroll Pro</h1>
+                </div>
+                <div>
+                    <span class="text-sm bg-blue-500 px-3 py-1 rounded-full">
+                        <span id="employee-count">0</span> Employees
+                    </span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Dashboard Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-blue-100 rounded-full">
+                        <i class="fas fa-users text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Total Employees</p>
+                        <p class="text-2xl font-bold" id="total-employees">0</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-green-100 rounded-full">
+                        <i class="fas fa-dollar-sign text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Monthly Payroll</p>
+                        <p class="text-2xl font-bold" id="total-payroll">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-purple-100 rounded-full">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Avg. Salary</p>
+                        <p class="text-2xl font-bold" id="avg-salary">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="p-3 bg-orange-100 rounded-full">
+                        <i class="fas fa-clock text-orange-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-gray-600">Pending Approvals</p>
+                        <p class="text-2xl font-bold">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column - Employee Management -->
+            <div class="lg:col-span-2">
+                <!-- Employee Form -->
+                <div class="bg-white rounded-lg shadow p-6 mb-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Add New Employee</h2>
+                    <form id="employee-form" class="space-y-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Employee ID</label>
+                                <input type="text" id="employee-id" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <input type="text" id="employee-name" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Position</label>
+                                <select id="employee-position" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="Developer">Developer</option>
+                                    <option value="Manager">Manager</option>
+                                    <option value="Designer">Designer</option>
+                                    <option value="HR">HR Specialist</option>
+                                    <option value="Sales">Sales Executive</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Department</label>
+                                <select id="employee-department" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="IT">IT</option>
+                                    <option value="Management">Management</option>
+                                    <option value="Design">Design</option>
+                                    <option value="HR">Human Resources</option>
+                                    <option value="Sales">Sales</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($)</label>
+                                <input type="number" id="hourly-rate" step="0.01" required class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                                <input type="number" id="tax-rate" value="20" step="0.1" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Bonus ($)</label>
+                                <input type="number" id="bonus" value="0" step="0.01" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200">
+                            <i class="fas fa-plus mr-2"></i>Add Employee
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Employee List -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800">Employee Directory</h2>
+                        <div class="flex space-x-2">
+                            <input type="text" id="search-employees" placeholder="Search employees..." class="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <button id="export-btn" class="bg-green-600 text-white px-3 py-1 rounded-md hover:bg-green-700">
+                                <i class="fas fa-download"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full table-auto">
+                            <thead>
+                                <tr class="bg-gray-50">
+                                    <th class="px-4 py-2 text-left">ID</th>
+                                    <th class="px-4 py-2 text-left">Name</th>
+                                    <th class="px-4 py-2 text-left">Position</th>
+                                    <th class="px-4 py-2 text-left">Department</th>
+                                    <th class="px-4 py-2 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="employee-list">
+                                <!-- Employee data will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Payroll Tools -->
+            <div class="space-y-6">
+                <!-- Hours Calculator -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Hours Calculator</h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Employee</label>
+                            <select id="hours-employee" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">Select an employee</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Hours Worked</label>
+                            <input type="number" id="hours-worked" step="0.5" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <button id="add-hours-btn" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+                            Add Hours
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Salary Preview -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Salary Preview</h2>
+                    <div id="salary-preview" class="space-y-3 text-sm">
+                        <p class="text-gray-600">Select an employee and add hours to see salary breakdown</p>
+                    </div>
+                </div>
+
+                <!-- Payroll Chart -->
+                <div class="bg-white rounded-lg shadow p-6">
+                    <h2 class="text-xl font-bold mb-4 text-gray-800">Department Payroll</h2>
+                    <canvas id="payroll-chart" width="300" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Detail Modal -->
+    <div id="employee-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold">Employee Details</h3>
+                    <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div id="modal-content"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class Employee {
+            constructor(id, name, position, department, hourlyRate, taxRate = 20, bonus = 0, hoursWorked = 0) {
+                this.id = id;
+                this.name = name;
+                this.position = position;
+                this.department = department;
+                this.hourlyRate = parseFloat(hourlyRate);
+                this.taxRate = parseFloat(taxRate);
+                this.bonus = parseFloat(bonus);
+                this.hoursWorked = parseFloat(hoursWorked);
+                this.paymentHistory = [];
+            }
+
+            addHours(hours) {
+                this.hoursWorked += parseFloat(hours);
+                this.paymentHistory.push({
+                    date: new Date().toLocaleDateString(),
+                    hours: parseFloat(hours),
+                    grossPay: this.calculateGrossPay(),
+                    netPay: this.calculateNetPay()
+                });
+            }
+
+            calculateGrossPay() {
+                return (this.hoursWorked * this.hourlyRate) + this.bonus;
+            }
+
+            calculateTax() {
+                return this.calculateGrossPay() * (this.taxRate / 100);
+            }
+
+            calculateNetPay() {
+                return this.calculateGrossPay() - this.calculateTax();
+            }
+        }
+
+        class PayrollSystem {
+            constructor() {
+                this.employees = new Map();
+                this.loadFromStorage();
+                this.updateUI();
+            }
+
+            addEmployee(employee) {
+                if (this.employees.has(employee.id)) {
+                    alert('Employee ID already exists!');
+                    return false;
+                }
+                this.employees.set(employee.id, employee);
+                this.saveToStorage();
+                this.updateUI();
+                return true;
+            }
+
+            removeEmployee(id) {
+                this.employees.delete(id);
+                this.saveToStorage();
+                this.updateUI();
+            }
+
+            getEmployee(id) {
+                return this.employees.get(id);
+            }
+
+            getAllEmployees() {
+                return Array.from(this.employees.values());
+            }
+
+            getEmployeesByDepartment() {
+                const deptMap = new Map();
+                this.employees.forEach(employee => {
+                    if (!deptMap.has(employee.department)) {
+                        deptMap.set(employee.department, []);
+                    }
+                    deptMap.get(employee.department).push(employee);
+                });
+                return deptMap;
+            }
+
+            saveToStorage() {
+                const data = Array.from(this.employees.values()).map(emp => ({
+                    ...emp,
+                    paymentHistory: emp.paymentHistory
+                }));
+                localStorage.setItem('payrollEmployees', JSON.stringify(data));
+            }
+
+            loadFromStorage() {
+                const data = JSON.parse(localStorage.getItem('payrollEmployees') || '[]');
+                data.forEach(empData => {
+                    const employee = new Employee(
+                        empData.id,
+                        empData.name,
+                        empData.position,
+                        empData.department,
+                        empData.hourlyRate,
+                        empData.taxRate,
+                        empData.bonus,
+                        empData.hoursWorked
+                    );
+                    employee.paymentHistory = empData.paymentHistory || [];
+                    this.employees.set(employee.id, employee);
+                });
+            }
+
+            updateUI() {
+                this.updateEmployeeList();
+                this.updateStats();
+                this.updateChart();
+                this.updateEmployeeDropdown();
+            }
+
+            updateEmployeeList() {
+                const list = document.getElementById('employee-list');
+                const searchTerm = document.getElementById('search-employees').value.toLowerCase();
+                
+                list.innerHTML = '';
+                this.getAllEmployees()
+                    .filter(emp => 
+                        emp.name.toLowerCase().includes(searchTerm) ||
+                        emp.id.toLowerCase().includes(searchTerm) ||
+                        emp.position.toLowerCase().includes(searchTerm) ||
+                        emp.department.toLowerCase().includes(searchTerm)
+                    )
+                    .forEach(emp => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b hover:bg-gray-50';
+                        row.innerHTML = `
+                            <td class="px-4 py-2 font-mono">${emp.id}</td>
+                            <td class="px-4 py-2">${emp.name}</td>
+                            <td class="px-4 py-2">${emp.position}</td>
+                            <td class="px-4 py-2">
+                                <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${emp.department}</span>
+                            </td>
+                            <td class="px-4 py-2 text-right">
+                                <button onclick="viewEmployee('${emp.id}')" class="text-blue-600 hover:text-blue-800 mr-2">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="payrollSystem.removeEmployee('${emp.id}')" class="text-red-600 hover:text-red-800">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                        list.appendChild(row);
+                    });
+
+                document.getElementById('employee-count').textContent = this.employees.size;
+                document.getElementById('total-employees').textContent = this.employees.size;
+            }
+
+            updateStats() {
+                const employees = this.getAllEmployees();
+                const totalPayroll = employees.reduce((sum, emp) => sum + emp.calculateNetPay(), 0);
+                const avgSalary = employees.length ? totalPayroll / employees.length : 0;
+
+                document.getElementById('total-payroll').textContent = `$${totalPayroll.toFixed(2)}`;
+                document.getElementById('avg-salary').textContent = `$${avgSalary.toFixed(2)}`;
+            }
+
+            updateChart() {
+                const deptData = this.getEmployeesByDepartment();
+                const ctx = document.getElementById('payroll-chart').getContext('2d');
+                
+                if (window.payrollChart) {
+                    window.payrollChart.destroy();
+                }
+
+                const departments = Array.from(deptData.keys());
+                const departmentTotals = departments.map(dept => 
+                    deptData.get(dept).reduce((sum, emp) => sum + emp.calculateNetPay(), 0)
+                );
+
+                window.payrollChart = new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: departments,
+                        datasets: [{
+                            data: departmentTotals,
+                            backgroundColor: [
+                                '#3B82F6',
+                                '#10B981',
+                                '#8B5CF6',
+                                '#F59E0B',
+                                '#EF4444'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+            }
+
+            updateEmployeeDropdown() {
+                const select = document.getElementById('hours-employee');
+                select.innerHTML = '<option value="">Select an employee</option>';
+                
+                this.getAllEmployees().forEach(emp => {
+                    const option = document.createElement('option');
+                    option.value = emp.id;
+                    option.textContent = `${emp.name} (${emp.id})`;
+                    select.appendChild(option);
+                });
+            }
+
+            exportToCSV() {
+                const employees = this.getAllEmployees();
+                const csvData = employees.map(emp => ({
+                    ID: emp.id,
+                    Name: emp.name,
+                    Position: emp.position,
+                    Department: emp.department,
+                    'Hourly Rate': emp.hourlyRate,
+                    'Hours Worked': emp.hoursWorked,
+                    'Gross Pay': emp.calculateGrossPay(),
+                    'Tax': emp.calculateTax(),
+                    'Net Pay': emp.calculateNetPay()
+                }));
+
+                const csv = Papa.unparse(csvData);
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'payroll_export.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            }
+        }
+
+        // Initialize the system
+        const payrollSystem = new PayrollSystem();
+
+        // Event Listeners
+        document.getElementById('employee-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const employee = new Employee(
+                document.getElementById('employee-id').value,
+                document.getElementById('employee-name').value,
+                document.getElementById('employee-position').value,
+                document.getElementById('employee-department').value,
+                document.getElementById('hourly-rate').value,
+                document.getElementById('tax-rate').value,
+                document.getElementById('bonus').value
+            );
+
+            if (payrollSystem.addEmployee(employee)) {
+                this.reset();
+                document.getElementById('tax-rate').value = 20;
+                document.getElementById('bonus').value = 0;
+            }
+        });
+
+        document.getElementById('add-hours-btn').addEventListener('click', function() {
+            const empId = document.getElementById('hours-employee').value;
+            const hours = document.getElementById('hours-worked').value;
+            
+            if (!empId || !hours) {
+                alert('Please select an employee and enter hours');
+                return;
+            }
+
+            const employee = payrollSystem.getEmployee(empId);
+            if (employee) {
+                employee.addHours(hours);
+                payrollSystem.saveToStorage();
+                updateSalaryPreview(employee);
+                document.getElementById('hours-worked').value = '';
+            }
+        });
+
+        document.getElementById('hours-employee').addEventListener('change', function() {
+            const employee = payrollSystem.getEmployee(this.value);
+            if (employee) {
+                updateSalaryPreview(employee);
+            }
+        });
+
+        document.getElementById('search-employees').addEventListener('input', function() {
+            payrollSystem.updateEmployeeList();
+        });
+
+        document.getElementById('export-btn').addEventListener('click', function() {
+            payrollSystem.exportToCSV();
+        });
+
+        function updateSalaryPreview(employee) {
+            const preview = document.getElementById('salary-preview');
+            preview.innerHTML = `
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-blue-800">${employee.name}</h4>
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <span class="text-sm">Gross Pay:</span>
+                        <span class="text-sm font-bold text-right">$${employee.calculateGrossPay().toFixed(2)}</span>
+                        <span class="text-sm">Tax (${employee.taxRate}%):</span>
+                        <span class="text-sm text-red-600 font-bold text-right">$${employee.calculateTax().toFixed(2)}</span>
+                        <span class="text-sm">Bonus:</span>
+                        <span class="text-sm text-green-600 font-bold text-right">$${employee.bonus.toFixed(2)}</span>
+                        <span class="text-sm font-bold">Net Pay:</span>
+                        <span class="text-sm font-bold text-green-700 text-right">$${employee.calculateNetPay().toFixed(2)}</span>
+                    </div>
+                </div>
+                <div class="text-xs text-gray-600">
+                    Based on ${employee.hoursWorked} hours @ $${employee.hourlyRate}/hour
+                </div>
+            `;
+        }
+
+        function viewEmployee(id) {
+            const employee = payrollSystem.getEmployee(id);
+            if (employee) {
+                const modal = document.getElementById('employee-modal');
+                const content = document.getElementById('modal-content');
+                
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-semibold">Employee ID:</label>
+                                <p>${employee.id}</p>
+                            </div>
+                            <div>
+                                <label class="font-semibold">Name:</label>
+                                <p>${employee.name}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-semibold">Position:</label>
+                                <p>${employee.position}</p>
+                            </div>
+                            <div>
+                                <label class="font-semibold">Department:</label>
+                                <p>${employee.department}</p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="font-semibold">Hourly Rate:</label>
+                                <p>$${employee.hourlyRate.toFixed(2)}</p>
+                            </div>
+                            <div>
+                                <label class="font-semibold">Tax Rate:</label>
+                                <p>${employee.taxRate}%</p>
+                            </div>
+                        </div>
+                        <div class="bg-gray-50 p-4 rounded-lg">
+                            <h4 class="font-bold mb-2">Current Pay Period</h4>
+                            <div class="grid grid-cols-2 gap-2">
+                                <span>Hours Worked:</span>
+                                <span class="font-bold text-right">${employee.hoursWorked}</span>
+                                <span>Gross Pay:</span>
+                                <span class="font-bold text-right">$${employee.calculateGrossPay().toFixed(2)}</span>
+                                <span>Tax:</span>
+                                <span class="text-red-600 font-bold text-right">$${employee.calculateTax().toFixed(2)}</span>
+                                <span>Net Pay:</span>
+                                <span class="text-green-700 font-bold text-right">$${employee.calculateNetPay().toFixed(2)}</span>
+                            </div>
+                        </div>
+                        ${employee.paymentHistory.length > 0 ? `
+                            <div>
+                                <h4 class="font-bold mb-2">Payment History</h4>
+                                <div class="max-h-40 overflow-y-auto">
+                                    ${employee.paymentHistory.map(payment => `
+                                        <div class="border-b py-2 text-sm">
+                                            <div class="flex justify-between">
+                                                <span>${payment.date}</span>
+                                                <span class="font-bold">$${payment.netPay.toFixed(2)}</span>
+                                            </div>
+                                            <div class="text-gray-600 text-xs">
+                                                ${payment.hours} hours, Tax: $${(payment.grossPay - payment.netPay).toFixed(2)}
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('employee-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // Close modal on outside click
+        document.getElementById('employee-modal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+
+        // Initialize empty chart
+        window.payrollChart = null;
+    </script>
+</body>
+</html>
